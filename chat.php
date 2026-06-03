@@ -23,6 +23,49 @@ if (empty($user_message)) {
     exit;
 }
 
+
+// ===== RATE LIMITING =====
+$ip = $_SERVER['REMOTE_ADDR'];
+$limit = 10;
+$window = 86400; // 24 Stunden in Sekunden
+$storage_file = __DIR__ . '/rate_limit.json';
+
+// Datei laden oder neu erstellen
+$data = [];
+if (file_exists($storage_file)) {
+    $data = json_decode(file_get_contents($storage_file), true) ?? [];
+}
+
+$now = time();
+
+// Alte Einträge aufräumen (älter als 24h)
+foreach ($data as $stored_ip => $info) {
+    if ($now - $info['time'] > $window) {
+        unset($data[$stored_ip]);
+    }
+}
+
+// Aktuelle IP prüfen
+if (isset($data[$ip])) {
+    if ($data[$ip]['count'] >= $limit) {
+        $remaining = $window - ($now - $data[$ip]['time']);
+        $hours = ceil($remaining / 3600);
+        echo json_encode([
+        "error" => "limit",
+        "reply" => "⏳ Du hast deine 10 Anfragen für heute aufgebraucht! 😊\n\nKomm in {$hours} Stunden wieder — ich freue mich auf deine nächsten Fragen! 🟣"
+    ]);
+        exit;
+    }
+    $data[$ip]['count']++;
+} else {
+    $data[$ip] = ['count' => 1, 'time' => $now];
+}
+
+// Speichern
+file_put_contents($storage_file, json_encode($data));
+// ===== RATE LIMITING END =====
+
+
 $system_prompt = "Du bist 'Sobi', der persönliche KI-Assistent von Sobhan Haerizadeh.
 Du sprichst freundlich, professionell und antwortest in der Sprache des Besuchers.
 
@@ -88,7 +131,7 @@ Suggestions passend zur Antwort, maximal 3 Stück, kurz und auf Deutsch.
 
 $url = "https://api.anthropic.com/v1/messages";
 
-$data = [
+$request_data  = [
     "model" => "claude-haiku-4-5-20251001",
     "max_tokens" => 1024,
     "system" => $system_prompt,
@@ -100,7 +143,7 @@ $data = [
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request_data));
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "Content-Type: application/json",
     "x-api-key: " . $api_key,
