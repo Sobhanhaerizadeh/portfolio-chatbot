@@ -1,4 +1,4 @@
-const CHAT_API_URL = "chat.php";
+const CHAT_API_URL = "/chat.php";
 
 function createChatWidget() {
     const widget = document.createElement("div");
