@@ -1,48 +1,61 @@
 const CHAT_API_URL = "/chat.php";
 
-function createChatWidget() {
-    const widget = document.createElement("div");
-    widget.innerHTML = `
-    <div id="sobi-toggle" title="Chat mit Sobi">
-      <img src="https://sobhanhaerizadeh.de/assets/images/Sobhanhaerizadeh.jpg" alt="Sobi" />
-    </div>
-
-    <div id="sobi-box">
-      <div id="sobi-header">
-        <img src="https://sobhanhaerizadeh.de/assets/images/Sobhanhaerizadeh.jpg" alt="Sobi" />
-        <div>
-          <strong>Sobi</strong>
-          <span>KI-Assistent von Sobhan</span>
-        </div>
-        <button id="sobi-close">✕</button>
-      </div>
-
-      <div id="sobi-messages">
-        <div class="sobi-msg sobi-bot">
-    👋 Hey! Ich bin <strong>Sobi</strong> <br>  Sobhans persönlicher KI-Assistent. 🤖✨<br/><br/>
-    💬 Du kannst mich alles fragen über:<br/>
-    🧑‍💻 Sobhans Skills & Projekte<br/>
-    📬 Kontakt & Links<br/><br/>
-    Worüber möchtest du mehr erfahren? 🚀
-        </div>
-          <div id="sobi-suggestions">
-    <button class="sobi-suggestion">🎂 Wie alt ist Sobhan?</button>
-    <button class="sobi-suggestion">💼 Was macht er beruflich?</button>
-    <button class="sobi-suggestion">🚀 Welche Projekte hat er?</button>
-    <button class="sobi-suggestion">🛠️ Was sind seine Skills?</button>
-  </div>
-      </div>
-
-      <div id="sobi-input-area">
-        <input id="sobi-input" type="text" placeholder="Stell mir eine Frage..." />
-        <button id="sobi-send">➤</button>
-      </div>
-    </div>
-  `;
-    document.body.appendChild(widget);
+function t(key) {
+  return window.i18n ? window.i18n.t('chatbot.' + key) : key;
 }
 
-// Nachricht ins Chat-Fenster einfügen
+function buildInitialSuggestions(container) {
+  const suggestions = t('suggestions');
+  if (!Array.isArray(suggestions)) return;
+  suggestions.forEach(text => {
+    const btn = document.createElement('button');
+    btn.classList.add('sobi-suggestion');
+    btn.textContent = text;
+    btn.addEventListener('click', () => {
+      document.getElementById('sobi-input').value = text;
+      container.remove();
+      sendMessage();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function createChatWidget() {
+  const widget = document.createElement("div");
+  widget.innerHTML = `
+  <div id="sobi-toggle" data-i18n-title="chatbot.toggle_title" title="${t('toggle_title')}">
+    <img src="https://sobhanhaerizadeh.de/assets/images/sobidev.png" alt="Sobidev" />
+  </div>
+
+  <div id="sobi-box">
+    <div id="sobi-header">
+      <img src="https://sobhanhaerizadeh.de/assets/images/sobidev.png" alt="Sobidev Bot" />
+      <div>
+        <strong>Sobi</strong>
+        <span data-i18n="chatbot.subtitle">${t('subtitle')}</span>
+      </div>
+      <button id="sobi-close">✕</button>
+    </div>
+
+    <div id="sobi-messages">
+      <div class="sobi-msg sobi-bot" id="sobi-greeting" data-i18n-html="chatbot.greeting">
+        ${t('greeting')}
+      </div>
+      <div id="sobi-suggestions" data-initial="true"></div>
+    </div>
+
+    <div id="sobi-input-area">
+      <input id="sobi-input" type="text" data-i18n-placeholder="chatbot.placeholder" placeholder="${t('placeholder')}" />
+      <button id="sobi-send">➤</button>
+    </div>
+  </div>
+`;
+  document.body.appendChild(widget);
+
+  const suggestionsContainer = widget.querySelector('#sobi-suggestions');
+  buildInitialSuggestions(suggestionsContainer);
+}
+
 function appendMessage(text, sender) {
   const messages = document.getElementById("sobi-messages");
   const div = document.createElement("div");
@@ -52,7 +65,6 @@ function appendMessage(text, sender) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-// Tipp-Animation anzeigen
 function showTyping() {
   const messages = document.getElementById("sobi-messages");
   const div = document.createElement("div");
@@ -69,7 +81,6 @@ function hideTyping() {
 }
 
 function showSuggestions(suggestions) {
-  // Alte Suggestions entfernen
   const old = document.getElementById("sobi-suggestions");
   if (old) old.remove();
 
@@ -93,7 +104,6 @@ function showSuggestions(suggestions) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-// Nachricht an chat.php senden
 async function sendMessage() {
   const input = document.getElementById("sobi-input");
   const message = input.value.trim();
@@ -114,34 +124,23 @@ async function sendMessage() {
     hideTyping();
 
     if (data.reply) {
-    appendMessage(data.reply, "bot");
-
-    // Suggestions anzeigen
-    if (data.suggestions && data.suggestions.length > 0) {
+      appendMessage(data.reply, "bot");
+      if (data.suggestions && data.suggestions.length > 0) {
         showSuggestions(data.suggestions);
-    }
+      }
     } else {
-    appendMessage("❌ Fehler: Keine Antwort erhalten.", "bot");
+      appendMessage(t('err_no_reply'), "bot");
     }
   } catch (err) {
     hideTyping();
-    appendMessage("❌ Verbindungsfehler. Bitte versuche es später.", "bot");
+    appendMessage(t('err_connection'), "bot");
   }
 }
 
-// Events & Widget initialisieren
 function initSobi() {
   createChatWidget();
 
-  
-// Suggestion Buttons
-document.querySelectorAll(".sobi-suggestion").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.getElementById("sobi-input").value = btn.textContent.slice(2).trim();
-    document.getElementById("sobi-suggestions").remove();
-    sendMessage();
-  });
-});
+  if (window.i18n) window.i18n.applyTranslations();
 
   const toggle = document.getElementById("sobi-toggle");
   const box = document.getElementById("sobi-box");
@@ -163,6 +162,15 @@ document.querySelectorAll(".sobi-suggestion").forEach(btn => {
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendMessage();
+  });
+
+  // Rebuild initial suggestions when language changes (only if they haven't been replaced by backend suggestions)
+  document.addEventListener('langchange', () => {
+    const suggestions = document.getElementById('sobi-suggestions');
+    if (suggestions && suggestions.dataset.initial) {
+      suggestions.innerHTML = '';
+      buildInitialSuggestions(suggestions);
+    }
   });
 }
 

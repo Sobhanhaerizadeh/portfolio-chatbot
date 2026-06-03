@@ -1,20 +1,20 @@
-# 🤖 Sobi — KI-Chatbot für Portfolio-Websites
+# 🤖 Sobi — KI-Chatbot für Portfolio-Websites / Mein persönlicher KI-Chatbot
 
 > Ein persönlicher KI-Assistent der auf deiner Portfolio-Website läuft und Besuchern automatisch Fragen über dich, deine Skills und deine Projekte beantwortet.
 
-<img width="450" height="203" alt="image" src="https://github.com/user-attachments/assets/e36027e9-7b8d-49dc-9b1d-54f7cd4dac68" />
+<img width="453" height="207" alt="image" src="https://github.com/user-attachments/assets/5ab4dd67-2856-44b4-b264-61a2684a798a" />
 
 
 ![PHP](https://img.shields.io/badge/PHP-8.x-777BB4?style=flat-square&logo=php&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
-![Gemini](https://img.shields.io/badge/Google_Gemini-2.0_Flash-4285F4?style=flat-square&logo=google&logoColor=white)
+![Claude](https://img.shields.io/badge/Anthropic-Claude_Haiku-D97706?style=flat-square&logo=anthropic&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-Responsive-1572B6?style=flat-square&logo=css3&logoColor=white)
 
 ---
 
-## ✨ Features
+## ✨ Features - Was kann Sobi?
 
-- 🧠 **KI-gestützte Antworten** via Google Gemini 2.0 Flash
+- 🧠 **KI-gestützte Antworten** via Anthropic Claude Haiku
 - 💬 **Dynamische Suggestion Buttons** — KI schlägt nach jeder Antwort passende Folgefragen vor
 - 🎨 **Lila Dark Theme** — elegant und modern
 - 📱 **Vollständig responsiv** — auf kleinen Geräten öffnet sich Sobi fullscreen
@@ -29,10 +29,10 @@
 
 ```
 portfolio-chatbot/
-├── chat.php        ← Backend: liest .env, sendet Anfrage an Gemini API
+├── chat.php        ← Backend: liest .env, sendet Anfrage an Claude API
 ├── chatbot.js      ← Frontend: Widget-Logik, Suggestions, Animationen
 ├── chatbot.css     ← Design: Lila Dark Theme, vollständig responsiv
-├── preview.html    ← Vorschau-Seite zum lokalen Testen
+├── index.html    ← Vorschau-Seite zum lokalen Testen
 ├── .env            ← 🔒 API Key (NICHT auf GitHub!)
 ├── .gitignore      ← schützt .env vor GitHub
 └── README.md
@@ -49,7 +49,7 @@ Besucher tippt Frage
         ↓
   chat.php (Backend) ← API Key sicher versteckt
         ↓
-  Google Gemini API
+  Anthropic Claude API
         ↓
   { "reply": "...", "suggestions": ["...", "..."] }
         ↓
@@ -69,12 +69,12 @@ cd portfolio-chatbot
 
 ### 2. API Key holen
 
-Gehe auf [aistudio.google.com](https://aistudio.google.com) → **Get API Key** → Key kopieren.
+Gehe auf [console.anthropic.com](https://console.anthropic.com) → **API Keys** → Key erstellen & kopieren.
 
 ### 3. `.env` Datei erstellen
 
 ```env
-GEMINI_API_KEY=dein-api-key-hier
+ANTHROPIC_API_KEY=sk-ant-dein-key-hier
 ```
 
 > ⚠️ Die `.env` Datei wird durch `.gitignore` geschützt und nie auf GitHub hochgeladen!
@@ -104,13 +104,16 @@ Füge diese 2 Zeilen vor `</body>` in jede HTML-Seite ein:
 
 Der **Sobi-Button** erscheint fest unten rechts auf deiner Website:
 
-<img width="1621" height="755" alt="image" src="https://github.com/user-attachments/assets/aec90b7b-6216-4f18-bf17-7f620dc018f5" />
+<img width="1522" height="752" alt="image" src="https://github.com/user-attachments/assets/693688aa-8a29-4dae-9925-df283b8a66ca" />
 
 
 
 Beim Klick öffnet sich das Chat-Fenster:
 
-<img width="605" height="734" alt="image" src="https://github.com/user-attachments/assets/ac89b323-f4ba-4ef8-9001-182fa9a97fc4" />
+<img width="456" height="627" alt="image" src="https://github.com/user-attachments/assets/5c16c365-4a3e-480a-bb7e-84dab9c9c1b5" />
+
+
+<img width="456" height="627" alt="image" src="https://github.com/user-attachments/assets/25c56176-c13b-4086-84c5-1c337879c715" />
 
 
 ---
@@ -133,7 +136,7 @@ Beim Klick öffnet sich das Chat-Fenster:
 | PHP 8.x | Backend, API-Kommunikation |
 | JavaScript (ES6+) | Chat-Widget, DOM-Manipulation |
 | CSS3 | Design, Animationen, Responsive |
-| Google Gemini 2.0 Flash | KI-Antworten & Suggestions |
+| Anthropic Claude Haiku | KI-Antworten & Suggestions |
 
 ---
 

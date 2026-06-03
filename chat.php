@@ -1,12 +1,10 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
 
-// API Key sicher aus .env lesen
 $dotenv = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 foreach ($dotenv as $line) {
     if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
@@ -14,10 +12,9 @@ foreach ($dotenv as $line) {
         putenv(trim($key) . '=' . trim($value));
     }
 }
+$api_key = getenv('ANTHROPIC_API_KEY');
 
-$api_key = getenv('GEMINI_API_KEY');
 
-// Nachricht vom Browser lesen
 $input = json_decode(file_get_contents("php://input"), true);
 $user_message = $input["message"] ?? "";
 
@@ -26,17 +23,12 @@ if (empty($user_message)) {
     exit;
 }
 
-// System-Prompt: Was der Bot über dich weiß
 $system_prompt = "Du bist 'Sobi', der persönliche KI-Assistent von Sobhan Haerizadeh.
 Du sprichst freundlich, professionell und antwortest in der Sprache des Besuchers.
-
 
 === ÜBER SOBHAN ===
 Name:     Sobhan Haerizadeh
 Beruf:    Webentwickler & Programmer & Auszubildender Fachinformatiker für Anwendungsentwicklung
-Standort: Schöningen, Deutschland
-Geburtstag: 19. April 2004 (22 Jahre alt)
-Herkunft:  Geboren im Iran, seit Juni 2024 in Deutschland
 Interessen: Programmierung, moderne Webtechnologien, sauberer Code & gute Softwarelösungen
 
 === SKILLS ===
@@ -61,84 +53,78 @@ GitHub:   https://github.com/SobhanHaerizadeh
 LinkedIn: https://www.linkedin.com/in/sobhanhaerizadeh
 
 === PROJEKTE ===
-Sobhan hat diese Live-Projekte gebaut:
-
 01 ⚡ GitHub Portfolio Analyzer
-   Analysiert GitHub-Profile auf einen Blick — Repositories, Follower & meist genutzte Sprachen
-   Live:   https://sobhanhaerizadeh.de/projekte/github-portfolio-analyzer/ (Projekt 01)
+   Live:   https://sobhanhaerizadeh.de/projekte/github-portfolio-analyzer/
    GitHub: https://github.com/Sobhanhaerizadeh/github-portfolio-analyzer
 
 02 🎲 Dice Game
-   Zwei Spieler würfeln gegeneinander — Punkte werden live getrackt
-   Live:   https://sobhanhaerizadeh.de/projekte/wuerfelspiel/ (Projekt 02)
+   Live:   https://sobhanhaerizadeh.de/projekte/wuerfelspiel/
    GitHub: https://github.com/Sobhanhaerizadeh/wuerfelspiel
 
 03 ⏳ Countdown Timer
-   Zieldatum wählen & live countdown verfolgen — Tage, Stunden, Minuten, Sekunden
-   Live:   https://sobhanhaerizadeh.de/projekte/countdown-timer/ (Projekt 03)
+   Live:   https://sobhanhaerizadeh.de/projekte/countdown-timer/
    GitHub: https://github.com/Sobhanhaerizadeh/countdown-timer
 
 04 🦠 COVID-19 Tracker
-   Weltweite Infektionszahlen in Echtzeit via API-Integration
-   Live:   https://sobhanhaerizadeh.de/projekte/covid/ (Projekt 04)
+   Live:   https://sobhanhaerizadeh.de/projekte/covid/
    GitHub: https://github.com/Sobhanhaerizadeh/COVID-19
 
 05 🔍 IP-Lookup
-   Domain eingeben → sofort die IP-Adresse finden. FastAPI Backend + HTML/CSS/JS Frontend
-   Live:   https://sobhanhaerizadeh.de/projekte/IP-Lookup/ (Projekt 05)
+   Live:   https://sobhanhaerizadeh.de/projekte/IP-Lookup/
    GitHub: https://github.com/Sobhanhaerizadeh/IP_Lookup
 
-    === ANTWORTFORMAT ===
-    Antworte IMMER nur mit diesem JSON-Format, nichts anderes:
-    {
-    "reply": "Deine Antwort hier",
-    "suggestions": ["Frage 1?", "Frage 2?", "Frage 3?"]
-    }
-    Suggestions sollen passend zur Antwort sein, maximal 3 Stück, kurz und auf Deutsch.
+=== ANTWORTFORMAT ===
+Antworte IMMER nur mit diesem JSON-Format, nichts anderes:
+{
+  \"reply\": \"Deine Antwort hier\",
+  \"suggestions\": [\"Frage 1?\", \"Frage 2?\", \"Frage 3?\"]
+}
+Suggestions passend zur Antwort, maximal 3 Stück, kurz und auf Deutsch.
 
 === REGELN ===
 - Beantworte NUR Fragen über Sobhan, seine Skills oder seine Arbeit
 - Bei anderen Themen: höflich ablehnen und auf Sobhans Portfolio hinweisen
 - Sei freundlich, kurz und hilfreich";
 
+$url = "https://api.anthropic.com/v1/messages";
 
-   // Anfrage an KI API
+$data = [
+    "model" => "claude-haiku-4-5-20251001",
+    "max_tokens" => 1024,
+    "system" => $system_prompt,
+    "messages" => [
+        ["role" => "user", "content" => $user_message]
+    ]
+];
 
-    $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" . $api_key;
-    $data = [
-        "system_instruction" => [
-            "parts" => [["text" => $system_prompt]]
-        ],
-        "contents" => [
-            ["role" => "user", "parts" => [["text" => $user_message]]]
-        ]
-    ];
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Content-Type: application/json",
+    "x-api-key: " . $api_key,
+    "anthropic-version: 2023-06-01"
+]);
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+$response = curl_exec($ch);
+curl_close($ch);
 
-    $response = curl_exec($ch);
-    curl_close($ch);
+$result = json_decode($response, true);
 
-    $result = json_decode($response, true);
-
-    if (isset($result["candidates"][0]["content"]["parts"][0]["text"])) {
-        $raw = $result["candidates"][0]["content"]["parts"][0]["text"];
-        // JSON Backticks entfernen falls vorhanden
-        $clean = preg_replace('/```json|```/', '', $raw);
-        $parsed = json_decode(trim($clean), true);
-        if (isset($parsed["reply"])) {
-            echo json_encode([
-                "reply" => $parsed["reply"],
-                "suggestions" => $parsed["suggestions"] ?? []
-            ]);
-        } else {
-            echo json_encode(["reply" => $raw, "suggestions" => []]);
-        }
+if (isset($result["content"][0]["text"])) {
+    $raw = $result["content"][0]["text"];
+    $clean = preg_replace('/```json|```/', '', $raw);
+    $parsed = json_decode(trim($clean), true);
+    if (isset($parsed["reply"])) {
+        echo json_encode([
+            "reply" => $parsed["reply"],
+            "suggestions" => $parsed["suggestions"] ?? []
+        ]);
     } else {
-        echo json_encode(["error" => "Fehler bei der API-Antwort."]);
+        echo json_encode(["reply" => $raw, "suggestions" => []]);
     }
+} else {
+    echo json_encode(["error" => "Fehler bei der API-Antwort.", "debug" => $result]);
+}
 ?>
