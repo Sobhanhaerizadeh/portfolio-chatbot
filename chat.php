@@ -88,7 +88,14 @@ Sobhan hat diese Live-Projekte gebaut:
    Live:   https://sobhanhaerizadeh.de/projekte/IP-Lookup/ (Projekt 05)
    GitHub: https://github.com/Sobhanhaerizadeh/IP_Lookup
 
-   
+    === ANTWORTFORMAT ===
+    Antworte IMMER nur mit diesem JSON-Format, nichts anderes:
+    {
+    "reply": "Deine Antwort hier",
+    "suggestions": ["Frage 1?", "Frage 2?", "Frage 3?"]
+    }
+    Suggestions sollen passend zur Antwort sein, maximal 3 Stück, kurz und auf Deutsch.
+
 === REGELN ===
 - Beantworte NUR Fragen über Sobhan, seine Skills oder seine Arbeit
 - Bei anderen Themen: höflich ablehnen und auf Sobhans Portfolio hinweisen
@@ -118,9 +125,19 @@ Sobhan hat diese Live-Projekte gebaut:
 
     $result = json_decode($response, true);
 
-    // Antwort zurück an den Browser senden
     if (isset($result["candidates"][0]["content"]["parts"][0]["text"])) {
-        echo json_encode(["reply" => $result["candidates"][0]["content"]["parts"][0]["text"]]);
+        $raw = $result["candidates"][0]["content"]["parts"][0]["text"];
+        // JSON Backticks entfernen falls vorhanden
+        $clean = preg_replace('/```json|```/', '', $raw);
+        $parsed = json_decode(trim($clean), true);
+        if (isset($parsed["reply"])) {
+            echo json_encode([
+                "reply" => $parsed["reply"],
+                "suggestions" => $parsed["suggestions"] ?? []
+            ]);
+        } else {
+            echo json_encode(["reply" => $raw, "suggestions" => []]);
+        }
     } else {
         echo json_encode(["error" => "Fehler bei der API-Antwort."]);
     }

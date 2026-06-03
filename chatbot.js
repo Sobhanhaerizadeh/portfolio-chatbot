@@ -19,9 +19,18 @@ function createChatWidget() {
 
       <div id="sobi-messages">
         <div class="sobi-msg sobi-bot">
-          👋 Hallo! Ich bin <strong>Sobi</strong>, Sobhans persönlicher KI-Assistent.<br/>
-          Frag mich alles über Sobhan, seine Skills oder Projekte!
+    👋 Hey! Ich bin <strong>Sobi</strong> <br>  Sobhans persönlicher KI-Assistent. 🤖✨<br/><br/>
+    💬 Du kannst mich alles fragen über:<br/>
+    🧑‍💻 Sobhans Skills & Projekte<br/>
+    📬 Kontakt & Links<br/><br/>
+    Worüber möchtest du mehr erfahren? 🚀
         </div>
+          <div id="sobi-suggestions">
+    <button class="sobi-suggestion">🎂 Wie alt ist Sobhan?</button>
+    <button class="sobi-suggestion">💼 Was macht er beruflich?</button>
+    <button class="sobi-suggestion">🚀 Welche Projekte hat er?</button>
+    <button class="sobi-suggestion">🛠️ Was sind seine Skills?</button>
+  </div>
       </div>
 
       <div id="sobi-input-area">
@@ -59,6 +68,31 @@ function hideTyping() {
   if (el) el.remove();
 }
 
+function showSuggestions(suggestions) {
+  // Alte Suggestions entfernen
+  const old = document.getElementById("sobi-suggestions");
+  if (old) old.remove();
+
+  const messages = document.getElementById("sobi-messages");
+  const div = document.createElement("div");
+  div.id = "sobi-suggestions";
+
+  suggestions.forEach(text => {
+    const btn = document.createElement("button");
+    btn.classList.add("sobi-suggestion");
+    btn.textContent = text;
+    btn.addEventListener("click", () => {
+      document.getElementById("sobi-input").value = text;
+      div.remove();
+      sendMessage();
+    });
+    div.appendChild(btn);
+  });
+
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
 // Nachricht an chat.php senden
 async function sendMessage() {
   const input = document.getElementById("sobi-input");
@@ -80,9 +114,14 @@ async function sendMessage() {
     hideTyping();
 
     if (data.reply) {
-      appendMessage(data.reply, "bot");
+    appendMessage(data.reply, "bot");
+
+    // Suggestions anzeigen
+    if (data.suggestions && data.suggestions.length > 0) {
+        showSuggestions(data.suggestions);
+    }
     } else {
-      appendMessage("❌ Fehler: Keine Antwort erhalten.", "bot");
+    appendMessage("❌ Fehler: Keine Antwort erhalten.", "bot");
     }
   } catch (err) {
     hideTyping();
@@ -93,6 +132,16 @@ async function sendMessage() {
 // Events & Widget initialisieren
 function initSobi() {
   createChatWidget();
+
+  
+// Suggestion Buttons
+document.querySelectorAll(".sobi-suggestion").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("sobi-input").value = btn.textContent.slice(2).trim();
+    document.getElementById("sobi-suggestions").remove();
+    sendMessage();
+  });
+});
 
   const toggle = document.getElementById("sobi-toggle");
   const box = document.getElementById("sobi-box");
